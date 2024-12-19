@@ -81,7 +81,8 @@ class RequestIdBootstrap implements BootstrapInterface
             $requestId = $this->requestIdGenerator->generateRequestId();
             $this->requestIdService->setRequestId($requestId);
             $commandName = $this->getCommandName($event->action->uniqueId);
-
+            echo "Executing command: {$commandName}" . PHP_EOL;
+            echo "Request ID: {$requestId}" . PHP_EOL;
             Yii::info("Executing command: {$commandName} with Request ID: {$requestId}", __METHOD__);
             Yii::debug("Start command '{$commandName}' with ID: {$requestId}", __METHOD__);
         });
