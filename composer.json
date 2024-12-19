@@ -27,7 +27,7 @@
   "extra": {
     "bootstrap": "khovanskiy\\yii2requestid\\RequestIdBootstrap"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minimum-stability": "stable",
   "prefer-stable": true,
   "config": {
