@@ -1,0 +1,73 @@
+# Composer dependencies
+/vendor/
+/composer.lock
+
+# Yii2 generated files
+/runtime/
+/web/assets/
+/tests/_output/
+/tests/_support/_generated/
+
+# OS-specific files
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# IDEs and Editors
+
+# PHPStorm
+.idea/
+
+# VSCode
+.vscode/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Other Editors
+*.bak
+*.tmp
+*.temp
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# PHPUnit
+/phpunit.xml
+/phpunit.xml.dist
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Coverage reports
+/coverage/
+/phpunit.xml
+
+# Cache files
+*.cache
+.cache/

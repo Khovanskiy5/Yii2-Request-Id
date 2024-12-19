@@ -1,0 +1,26 @@
+{
+  "name": "khovanskiy/yii2-request-id",
+  "description": "Yii2 component for handling and propagating request IDs",
+  "type": "yii2-extension",
+  "authors": [
+    {
+      "name": "Khovanskiy",
+      "email": "a@khovanskiy.ru"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "khovanskiy\\yii2requestid\\": "src/"
+    }
+  },
+  "require": {
+    "yiisoft/yii2": "^2.0",
+    "php": ">=7.4"
+  },
+  "extra": {
+    "bootstrap": "khovanskiy\\yii2requestid\\RequestIdBootstrap"
+  },
+  "version": "1.0.0",
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
