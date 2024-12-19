@@ -6,7 +6,6 @@ use Yii;
 use yii\base\Application;
 use yii\base\BootstrapInterface;
 use yii\base\Event;
-use yii\base\Module;
 use yii\web\Application as WebApplication;
 use yii\console\Application as ConsoleApplication;
 
@@ -14,49 +13,97 @@ class RequestIdBootstrap implements BootstrapInterface
 {
     private RequestIdService $requestIdService;
     private RequestIdGenerator $requestIdGenerator;
+    private string $headerName;
 
-    public function __construct(RequestIdService $requestIdService, RequestIdGenerator $requestIdGenerator)
-    {
+    /**
+     * Конструктор класса.
+     *
+     * @param RequestIdService $requestIdService Сервис для управления Request ID.
+     * @param RequestIdGenerator $requestIdGenerator Генератор Request ID.
+     * @param string $headerName Название заголовка для Request ID.
+     */
+    public function __construct(
+        RequestIdService $requestIdService,
+        RequestIdGenerator $requestIdGenerator,
+        string $headerName = 'X-Request-ID'
+    ) {
         $this->requestIdService = $requestIdService;
         $this->requestIdGenerator = $requestIdGenerator;
+        $this->headerName = $headerName;
     }
 
-    public function bootstrap($app)
+    /**
+     * Метод инициализации Bootstrap.
+     *
+     * @param Application $app Приложение Yii.
+     */
+    public function bootstrap($app): void
     {
         if ($app instanceof WebApplication) {
-            Event::on(WebApplication::class, Application::EVENT_BEFORE_REQUEST, function() {
-                $request = Yii::$app->request;
-                $requestId = $request->headers->get('X-Request-ID', $this->requestIdGenerator->generateRequestId());
-                $this->requestIdService->setRequestId($requestId);
-                Yii::debug("Incoming request with ID: {$this->requestIdService->getRequestId()}", __METHOD__);
-            });
-
-            Event::on(WebApplication::class, Application::EVENT_AFTER_REQUEST, function() {
-                $response = Yii::$app->response;
-                $response->headers->set('X-Request-ID', $this->requestIdService->getRequestId());
-            });
+            $this->bootstrapWebApplication($app);
+        } elseif ($app instanceof ConsoleApplication) {
+            $this->bootstrapConsoleApplication($app);
         }
+    }
 
-        if ($app instanceof ConsoleApplication) {
-            Event::on(ConsoleApplication::class, Module::EVENT_BEFORE_ACTION, function($event) use ($app) {
-                $requestId = $this->requestIdGenerator->generateRequestId();
-                $this->requestIdService->setRequestId($requestId);
-                $uniqueIdParts = explode('/', $event->action->uniqueId);
-                $baseCommand = $uniqueIdParts[0] ?? '';
+    /**
+     * Инициализация для веб-приложения.
+     *
+     * @param WebApplication $app Веб-приложение Yii.
+     */
+    private function bootstrapWebApplication(WebApplication $app): void
+    {
+        // Перед обработкой запроса
+        Event::on(WebApplication::class, Application::EVENT_BEFORE_REQUEST, function () {
+            $request = Yii::$app->request;
+            $requestId = $request->getHeaders()->get($this->headerName)
+                ?? $this->requestIdGenerator->generateRequestId();
+            $this->requestIdService->setRequestId($requestId);
+            Yii::debug("Incoming request with ID: {$requestId}", __METHOD__);
+        });
 
-                $commandName = $baseCommand ? 'php yii ' . $baseCommand : 'php yii';
-                echo "Executing command: " . $commandName . PHP_EOL;
-                echo "Request ID: " . $this->requestIdService->getRequestId() . PHP_EOL;
-                Yii::debug("Start command '{$commandName}' with ID: {$this->requestIdService->getRequestId()}", __METHOD__);
-            });
+        // После обработки запроса
+        Event::on(WebApplication::class, Application::EVENT_AFTER_REQUEST, function () {
+            $response = Yii::$app->response;
+            $response->getHeaders()->set($this->headerName, $this->requestIdService->getRequestId());
+        });
+    }
 
-            Event::on(ConsoleApplication::class, Module::EVENT_AFTER_ACTION, function($event) {
-                $uniqueIdParts = explode('/', $event->action->uniqueId);
-                $baseCommand = $uniqueIdParts[0] ?? '';
-                $commandName = $baseCommand ? 'php yii ' . $baseCommand : 'php yii';
+    /**
+     * Инициализация для консольного приложения.
+     *
+     * @param ConsoleApplication $app Консольное приложение Yii.
+     */
+    private function bootstrapConsoleApplication(ConsoleApplication $app): void
+    {
+        // Перед выполнением действия
+        Event::on(ConsoleApplication::class, ConsoleApplication::EVENT_BEFORE_ACTION, function ($event) {
+            $requestId = $this->requestIdGenerator->generateRequestId();
+            $this->requestIdService->setRequestId($requestId);
+            $commandName = $this->getCommandName($event->action->uniqueId);
 
-                Yii::debug("Finish command '{$commandName}' with ID: {$this->requestIdService->getRequestId()}", __METHOD__);
-            });
-        }
+            Yii::info("Executing command: {$commandName} with Request ID: {$requestId}", __METHOD__);
+            Yii::debug("Start command '{$commandName}' with ID: {$requestId}", __METHOD__);
+        });
+
+        // После выполнения действия
+        Event::on(ConsoleApplication::class, ConsoleApplication::EVENT_AFTER_ACTION, function ($event) {
+            $commandName = $this->getCommandName($event->action->uniqueId);
+            $requestId = $this->requestIdService->getRequestId();
+
+            Yii::debug("Finish command '{$commandName}' with ID: {$requestId}", __METHOD__);
+        });
+    }
+
+    /**
+     * Получение имени команды из уникального идентификатора действия.
+     *
+     * @param string $uniqueId Уникальный идентификатор действия.
+     * @return string Имя команды.
+     */
+    private function getCommandName(string $uniqueId): string
+    {
+        $baseCommand = explode('/', $uniqueId)[0] ?? '';
+        return $baseCommand ? 'php yii ' . $baseCommand : 'php yii';
     }
 }

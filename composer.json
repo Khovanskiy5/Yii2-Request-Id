@@ -2,6 +2,14 @@
   "name": "khovanskiy/yii2-request-id",
   "description": "Yii2 component for handling and propagating request IDs",
   "type": "yii2-extension",
+  "provide": {
+    "bower-asset/jquery": "*",
+    "bower-asset/inputmask": "*",
+    "bower-asset/punycode": "*",
+    "bower-asset/yii2-pjax": "*",
+    "bower-asset/bootstrap": "*",
+    "bower-asset/typeahead.js": "*"
+  },
   "authors": [
     {
       "name": "Khovanskiy",
@@ -14,13 +22,17 @@
     }
   },
   "require": {
-    "yiisoft/yii2": "^2.0",
-    "php": ">=7.4"
+    "yiisoft/yii2": "~2.0.45"
   },
   "extra": {
     "bootstrap": "khovanskiy\\yii2requestid\\RequestIdBootstrap"
   },
   "version": "1.0.0",
   "minimum-stability": "stable",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "config": {
+    "allow-plugins": {
+      "yiisoft/yii2-composer": true
+    }
+  }
 }
